@@ -33,3 +33,35 @@ The hash function also does not guaruntee biological relevance of a sequence, so
 + FracMinHash abundances are abundances for a single k-mer instead of the number of reads that map to a gene. 
 Given the small number of base pairs that these abundances are constructed from, it is possible that the abundances may not reflect the abundances of surrounding k-mers and therefore may not be useful for correlations.
 + There are many more hashes than genes, so using a scaled value of 1000 may create a data set that is too high dimensional to analyze as was done in core-acc.
+
+## Getting started with this repository
+
+
+This repository uses conda to manage software installations. 
+You can find operating system-specific instructions for installing miniconda [here](https://docs.conda.io/en/latest/miniconda.html).
+To setup the environment required for this repository, run the following commands:
+```
+conda env create --name core_acc --file environment.yml
+conda activate core_acc
+```
+
+
+Snakemake can parallelize job submission and modulate resource usage (RAM, CPUs). 
+We used the command below in a slurm cluster, but other cluster engines [are also supported](https://snakemake.readthedocs.io/en/stable/executing/cluster.html).
+
+```
+snakemake -j 16 --use-conda --rerun-incomplete --latency-wait 15 --resources mem_mb=60000 --cluster "sbatch -t 720 -J cacc -p shas -n 1 -N 1 -c {threads} --mem={resources.mem_mb}" -k -n
+```
+
+Alternatively, snakemake can be executed without a cluster:
+```
+snakemake -j 2 --use-conda --rerun-incomplete -k -n
+```
+These parameters are described below:
+
++`-j 2` parallelizes the snakefile over two cores (drop to `-j 1` to only run one process at a time)
++ `--use-conda` tells snakemake to use conda to manage software environments for each rule
++ `--rerun-incomplete` tells snakemake to rerun rules when it thinks a file is incomplete, e.g. as may occur if a file is half-finished when a snakemake process is terminated.
++ `-k` indicates for the snakefile to keep running even if a rule fails. Snakemake will attempt to run all rules that don't depend on the output of the failed rule.
++ `-n` specifies a dry run. Remove this to actually execute the snakefile. The dry run is useful to make sure snakemake is running the desired rules for the desired number of times.
+
