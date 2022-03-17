@@ -1,5 +1,8 @@
 import pandas as pd
 
+outdir = "/projects/treiter\@xsede.org/2022-test-sketch-core-accessory-interactome/outputs"
+indir = "/projects/treiter\@xsede.org/2022-test-sketch-core-accessory-interactome/inputs"
+
 m = pd.read_csv("inputs/metadata.tsv", sep = "\t")
 SRX = list(m['experiment'])
 KSIZE = [21]
@@ -7,12 +10,12 @@ STRAIN = ['pao1', 'pa14']
 
 rule all:
     input:
-        expand("outputs/srx_sourmash_sketch_filtered_acc/{srx}_k{ksize}.sig", srx = SRX, ksize = KSIZE),
-        expand("outputs/srx_sourmash_sketch_filtered_core/{srx}_k{ksize}.sig", srx = SRX, ksize = KSIZE)
+        expand(f"{outdir}/srx_sourmash_sketch_filtered_acc/{{srx}}_k{{ksize}}.sig", srx = SRX, ksize = KSIZE),
+        expand(f"{outdir}/srx_sourmash_sketch_filtered_core/{{srx}}_k{{ksize}}.sig", srx = SRX, ksize = KSIZE)
 
 
 rule convert_srx_to_srr:
-    output: "outputs/srx_to_srr/{srx}.tsv"
+    output: outdir + "/srx_to_srr/{srx}.tsv"
     conda: "envs/pysradb.yml"
     threads: 1
     resources: mem_mb = 1000
@@ -21,8 +24,8 @@ rule convert_srx_to_srr:
     '''
     
 rule srx_sketch:
-    input: "outputs/srx_to_srr/{srx}.tsv"
-    output: "outputs/srx_sourmash_sketch/{srx}.sig"
+    input: outdir + "/srx_to_srr/{srx}.tsv"
+    output: outdir + "/srx_sourmash_sketch/{srx}.sig"
     threads: 1
     resources: mem_mb = 1000
     run:
@@ -33,8 +36,8 @@ rule srx_sketch:
               "sourmash sketch dna -p k=21,k=31,k=51,scaled=1000,abund --name {wildcards.srx} -o {output} -")
 
 rule srx_filter_sketches:
-    input: "outputs/srx_sourmash_sketch/{srx}.sig"
-    output: "outputs/srx_sourmash_sketch_filtered/{srx}_k{ksize}.sig"
+    input: outdir + "/srx_sourmash_sketch/{srx}.sig"
+    output: outdir + "/srx_sourmash_sketch_filtered/{srx}_k{ksize}.sig"
     threads: 1
     resources: mem_mb = 1000
     conda: "envs/sourmash.yml"
@@ -47,22 +50,22 @@ rule srx_filter_sketches:
 ##########################################################
 
 rule txome_download_pa14:
-    output: "inputs/txomes/pa14.cdna.all.fa.gz"
+    output: indir + "/txomes/pa14.cdna.all.fa.gz"
     resources: mem_mb = 1000
     shell:'''
     wget -O {output} ftp://ftp.ensemblgenomes.org/pub/bacteria/release-49/fasta/bacteria_16_collection/pseudomonas_aeruginosa_ucbpp_pa14_gca_000014625/cdna/Pseudomonas_aeruginosa_ucbpp_pa14_gca_000014625.ASM1462v1.cdna.all.fa.gz
     '''
 
 rule txome_download_pao1:
-    output: "inputs/txomes/pao1.cdna.all.fa.gz"
+    output: indir + "/txomes/pao1.cdna.all.fa.gz"
     resources: mem_mb = 1000
     shell:'''
     wget -O {output} ftp://ftp.ensemblgenomes.org/pub/bacteria/release-49/fasta/bacteria_5_collection/pseudomonas_aeruginosa_pao1_gca_000006765/cdna/Pseudomonas_aeruginosa_pao1_gca_000006765.ASM676v1.cdna.all.fa.gz
     '''
 
 rule txome_sketch:
-    input: "inputs/txomes/{strain}.cdna.all.fa.gz"
-    output: "outputs/txomes_sourmash_sketch/{strain}.sig"
+    input: indir + "/txomes/{strain}.cdna.all.fa.gz"
+    output: outdir + "/txomes_sourmash_sketch/{strain}.sig"
     threads: 1
     resources: mem_mb = 1000
     conda: "envs/sourmash.yml"
@@ -71,8 +74,8 @@ rule txome_sketch:
     '''
 
 rule txome_intersect_strain:
-    input: expand("outputs/txomes_sourmash_sketch/{strain}.sig", strain = STRAIN)
-    output: "outputs/txomes_sourmash_sketch_core/core_k{ksize}.sig"
+    input: expand(f"{outdir}/txomes_sourmash_sketch/{{strain}}.sig", strain = STRAIN)
+    output: outdir + "/txomes_sourmash_sketch_core/core_k{ksize}.sig"
     threads: 1
     resources: mem_mb = 1000
     conda: "envs/sourmash.yml"
@@ -87,9 +90,9 @@ rule txome_intersect_strain:
 
 rule srx_identify_core:
     input: 
-        core = "outputs/txomes_sourmash_sketch_core/core_k{ksize}.sig",
-        srx =  "outputs/srx_sourmash_sketch_filtered/{srx}_k{ksize}.sig"
-    output: "outputs/srx_sourmash_sketch_filtered_core/{srx}_k{ksize}.sig"
+        core = outdir + "/txomes_sourmash_sketch_core/core_k{ksize}.sig",
+        srx =  outdir + "/srx_sourmash_sketch_filtered/{srx}_k{ksize}.sig"
+    output: outdir + "/srx_sourmash_sketch_filtered_core/{srx}_k{ksize}.sig"
     threads: 1
     resources: mem_mb = 1000
     conda: "envs/sourmash.yml"
@@ -99,9 +102,9 @@ rule srx_identify_core:
 
 rule srx_identify_acc:
     input: 
-        core = "outputs/txomes_sourmash_sketch_core/core_k{ksize}.sig",
-        srx =  "outputs/srx_sourmash_sketch_filtered/{srx}_k{ksize}.sig"
-    output: "outputs/srx_sourmash_sketch_filtered_acc/{srx}_k{ksize}.sig"
+        core = outdir + "/txomes_sourmash_sketch_core/core_k{ksize}.sig",
+        srx =  outdir + "/srx_sourmash_sketch_filtered/{srx}_k{ksize}.sig"
+    output: outdir + "/srx_sourmash_sketch_filtered_acc/{srx}_k{ksize}.sig"
     threads: 1
     resources: mem_mb = 1000
     conda: "envs/sourmash.yml"
@@ -114,8 +117,8 @@ rule srx_identify_acc:
 ############################################################
 
 rule txome_sketch_singleton:
-    input: "inputs/txomes/{strain}.cdna.all.fa.gz"
-    output: "outputs/txomes_sourmash_sketch_singleton/{strain}.sig"
+    input: indir + "/txomes/{strain}.cdna.all.fa.gz"
+    output: outdir + "/txomes_sourmash_sketch_singleton/{strain}.sig"
     threads: 1
     resources: mem_mb = 1000
     conda: "envs/sourmash.yml"
