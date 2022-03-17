@@ -1,9 +1,11 @@
 import pandas as pd
 
-outdir = "/projects/treiter\@xsede.org/2022-test-sketch-core-accessory-interactome/outputs"
-indir = "/projects/treiter\@xsede.org/2022-test-sketch-core-accessory-interactome/inputs"
+outdir = "/projects/treiter@xsede.org/2022-test-sketch-core-accessory-interactome/outputs"
+indir = "/projects/treiter@xsede.org/2022-test-sketch-core-accessory-interactome/inputs"
 
 m = pd.read_csv("inputs/metadata.tsv", sep = "\t")
+# tmp limit to first few samples
+m = m.head()
 SRX = list(m['experiment'])
 KSIZE = [21]
 STRAIN = ['pao1', 'pa14']
@@ -20,14 +22,14 @@ rule convert_srx_to_srr:
     threads: 1
     resources: mem_mb = 1000
     shell:'''
-    pysradb srx-to-srr --detailed --save-to {output} {wildcards.srx}
+    pysradb srx-to-srr --detailed --saveto {output} {wildcards.srx}
     '''
     
 rule srx_sketch:
     input: outdir + "/srx_to_srr/{srx}.tsv"
     output: outdir + "/srx_sourmash_sketch/{srx}.sig"
     threads: 1
-    resources: mem_mb = 1000
+    resources: mem_mb = 16000
     run:
         srx_to_srr = pd.read_csv(input, sep = "\t")
         row = srx_to_srr.loc[srx_to_srr['experiment_accession'] == wildcards.srx]
