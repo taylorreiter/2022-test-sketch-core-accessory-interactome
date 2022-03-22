@@ -4,8 +4,6 @@ outdir = "/projects/treiter@xsede.org/2022-test-sketch-core-accessory-interactom
 indir = "/projects/treiter@xsede.org/2022-test-sketch-core-accessory-interactome/inputs"
 
 m = pd.read_csv("inputs/metadata.tsv", sep = "\t")
-# tmp limit to first few samples
-m = m.head()
 SRX = list(m['experiment'])
 KSIZE = [21]
 STRAIN = ['pao1', 'pa14']
@@ -13,7 +11,8 @@ STRAIN = ['pao1', 'pa14']
 rule all:
     input:
         expand(f"{outdir}/srx_sourmash_sketch_filtered_acc/{{srx}}_k{{ksize}}.sig", srx = SRX, ksize = KSIZE),
-        expand(f"{outdir}/srx_sourmash_sketch_filtered_core/{{srx}}_k{{ksize}}.sig", srx = SRX, ksize = KSIZE)
+        expand(f"{outdir}/srx_sourmash_sketch_filtered_core/{{srx}}_k{{ksize}}.sig", srx = SRX, ksize = KSIZE),
+        expand(f"{outdir}/srx_sourmash_sketch_filtered_csv/{{srx}}_k{{ksize}}.csv", srx = SRX, ksize = KSIZE)
 
 
 rule convert_srx_to_srr:
@@ -29,9 +28,9 @@ rule srx_sketch:
     input: outdir + "/srx_to_srr/{srx}.tsv"
     output: outdir + "/srx_sourmash_sketch/{srx}.sig"
     threads: 1
-    resources: mem_mb = 16000
+    resources: mem_mb = 1000
     run:
-        srx_to_srr = pd.read_csv(input, sep = "\t")
+        srx_to_srr = pd.read_csv(str(input), sep = "\t")
         row = srx_to_srr.loc[srx_to_srr['experiment_accession'] == wildcards.srx]
         srr = row['run_accession'].values[0]
         shell("fastq-dump --disable-multithreading --fasta 0 --skip-technical --readids --read-filter pass --dumpbase --split-spot --clip -Z {srr} |"
@@ -45,6 +44,16 @@ rule srx_filter_sketches:
     conda: "envs/sourmash.yml"
     shell:'''
     sourmash sig filter --name {wildcards.srx} -o {output} --min-abundance 2 -k {wildcards.ksize} --dna {input}
+    '''
+
+rule convert_srx_filtered_sketches_to_csv:
+    input:outdir + "/srx_sourmash_sketch_filtered/{srx}_k{ksize}.sig"
+    output: outdir + "/srx_sourmash_sketch_filtered_csv/{srx}_k{ksize}.csv"
+    threads: 1
+    resources: mem_mb = 1000
+    conda: "envs/sourmash.yml"
+    shell:'''
+    python scripts/sig_to_csv.py {input} {output}
     '''
 
 ##########################################################
