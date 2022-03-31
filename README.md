@@ -35,7 +35,9 @@ While each compendia contains gene counts for thousands of samples, 545 samples 
 
 During compendia construction, Doing et al. noted that known gene-gene relationships could be recovered using correlation analysis of gene counts.
 As depicted in the image below, genes that are part of the same operon and thus presumably co-transcribed on polycistronic transcripts have gene counts with high correlation coefficients after normalization.
-![](https://i.imgur.com/jHkwLn6.png =250x)
+
+![](https://i.imgur.com/jHkwLn6.png)
+
 This repository tests whether a similar pattern can be recovered using FracMinHash abundances.
 We initially focus on the PA14 compendium as it is smaller. 
 
