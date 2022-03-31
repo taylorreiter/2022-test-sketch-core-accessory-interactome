@@ -19,16 +19,16 @@ Anecdotally, we expect a Jaccard similarity of approximately 0.4 for genomes of 
 However, this could create problems if not enough k-mers are shared between related genomes.
 + FracMinHashes are randomly (but consistently) *fractional*. 
 We use a scaled value of 1000 to calculate sketches, meaning approximately 1/1000th of all k-mers are included in the final sketch. 
-These are approximately distributed across the genome, but the hash function is not designed to guaruntee sampling from all windows of the genome, so some sections may be missed.
+These are approximately distributed across the genome, but the hash function is not designed to guarantee sampling from all windows of the genome, so some sections may be missed.
 The probability that a k-mer will be observed in each 1000 base pair window of a genome sequence approximately follows a Poisson distribution (I think).
-The hash function also does not guaruntee biological relevance of a sequence, so a k-mer may represent a gene, a promoter, intergenic sequence, etc.
+The hash function also does not guarantee biological relevance of a sequence, so a k-mer may represent a gene, a promoter, intergenic sequence, etc.
 + FracMinHash abundances are abundances for a single k-mer instead of the number of reads that map to a gene. 
 Given the small number of base pairs that these abundances are constructed from, it is possible that the abundances may not reflect the abundances of surrounding k-mers and therefore may not be useful for correlations.
 + There are many more hashes than genes, so using a scaled value of 1000 may create a data set that is too high dimensional to analyze as was done in core-acc.
 
 ## Test data set
 
-To test whether subsampled k-mer abundances can be used to recover gene co-expression correlations, this repository uses *P. aeruginosa* gene expression compendia.
+To test whether sub sampled k-mer abundances can be used to recover gene co-expression correlations, this repository uses *P. aeruginosa* gene expression compendia.
 The compendia were created using publicly available RNA-seq data (see [preprint](https://doi.org/10.1101/2022.01.24.477642), [data repository](https://osf.io/s9gyu/), and [GitHub repository](https://github.com/hoganlab-dartmouth/pa-seq-compendia)) and represent gene counts for two *P. aeruginosa* strains, PAO1 and PA14.
 The gene counts were derived from quasi-mapping thousands of SRA fastq files against both reference transcriptomes.
 While each compendia contains gene counts for thousands of samples, 545 samples were identified as PA14 strain while 861 samples were identified as PAO1 strain (documented [here](https://github.com/greenelab/core-accessory-interactome/blob/master/data/metadata/SRA_annotations.tsv)). 
@@ -43,13 +43,13 @@ We initially focus on the PA14 compendium as it is smaller.
 
 ## Things tested
 
-1. Subsampled k-mer abundance distributions. Do this distribution looks similar to gene count distributions (negative binomial)? 
+1. Sub sampled k-mer abundance distributions. Do these distributions look similar to gene count distributions (negative binomial)? 
     + [20220322_compare_kmer_and_gene_count_dists.ipynb](notebooks/20220322_compare_kmer_and_gene_count_dists.ipynb)
 2. K-mer coverage for genes and operons. Do most genes and most operons have at least one hash (k-mer) in the FracMinHash sketch?
     + [20220325_hashes_in_transcripts_and_operons.ipynb](notebooks/20220325_hashes_in_transcripts_and_operons.ipynb)
 3. Normalization techniques and correlation analysis. Can we recover co-expression patterns using correlation analysis of normalized k-mer abundances?
     + DESeq2 median of ratios normalization: [20220328_correlations_mrnorm.ipynb](notebooks/20220328_correlations_mrnorm.ipynb)
-    + DESeq2 variance stabilized transformatin: [20220330_correlations_vstnorm.ipynb](notebooks/20220330_correlations_vstnorm.ipynb)
+    + DESeq2 variance stabilized transformation: [20220330_correlations_vstnorm.ipynb](notebooks/20220330_correlations_vstnorm.ipynb)
     + Seurat log normalization: [20220330_correlations_lognorm.ipynb](notebooks/20220330_correlations_lognorm.ipynb)
     + Seurat centered log ratio normalization: [20220330_correlations_clrnorm.ipynb](notebooks/20220330_correlations_clrnorm.ipynb)
     + Seurat counts per million normalization: [20220330_correlations_rcnorm.ipynb](notebooks/20220330_correlations_rcnorm.ipynb) 
