@@ -62,7 +62,7 @@ See notebooks for more details.
 
 + K-mer abundance distributions are weird
 + Many genes don't have a k-mer, but most operons do
-+ Many spurious correlations remain after normalization, obscuring signal from intra-operon correlations. Median of ratios and centered log ratio normalization appear to have performed the best, however many spurious correlations remain after normalization. In situations where we won't have gene annotations available, this would make it difficult to determine which k-mers are actually part of the same operon and which are not. 
++ Many spurious correlations (e.g. high correlation coefficients for k-mers that are not in the same operons) remain after normalization, obscuring signal from intra-operon correlations. Median of ratios and centered log ratio normalization appear to have performed the best, however many spurious correlations remain after normalization. In situations where we won't have gene annotations available, this would make it difficult to determine which k-mers are actually part of the same operon and which are not. 
 
 **Conclusions**
 
