@@ -12,7 +12,8 @@ rule all:
     input:
         expand(f"{outdir}/srx_sourmash_sketch_filtered_acc/{{srx}}_k{{ksize}}.sig", srx = SRX, ksize = KSIZE),
         expand(f"{outdir}/srx_sourmash_sketch_filtered_core/{{srx}}_k{{ksize}}.sig", srx = SRX, ksize = KSIZE),
-        expand(f"{outdir}/srx_sourmash_sketch_filtered_csv/{{srx}}_k{{ksize}}.csv", srx = SRX, ksize = KSIZE)
+        expand(f"{outdir}/srx_sourmash_sketch_filtered_csv/{{srx}}_k{{ksize}}.csv", srx = SRX, ksize = KSIZE),
+        expand(f"{outdir}/txomes_sourmash_sketch_singleton/{{strain}}.csv", strain = STRAIN)
 
 
 rule convert_srx_to_srr:
@@ -135,4 +136,14 @@ rule txome_sketch_singleton:
     conda: "envs/sourmash.yml"
     shell:'''
     sourmash sketch dna -p k=21,k=31,k=51,scaled=1000,abund --name-from-first --singleton -o {output} {input}
+    '''
+
+rule txome_sketch_singleton_to_csv:
+    input: outdir + "/txomes_sourmash_sketch_singleton/{strain}.sig"
+    output:  outdir + "/txomes_sourmash_sketch_singleton/{strain}.csv"
+    threads: 1
+    resources: mem_mb = 1000
+    conda: "envs/sourmash.yml"
+    shell:'''
+    python scripts/sig_to_csv_singleton.py {input} {output} 21
     '''
